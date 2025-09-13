@@ -3,7 +3,7 @@ import { Plus, LogOut, Filter } from 'lucide-react';
 import { useAuth } from '../hooks/useAuth';
 import { useTasks } from '../hooks/useTasks';
 import { TaskCard } from './TaskCard';
-import { TaskModal } from './Taskmodal';
+import { TaskModal } from './TaskModal';
 import { TaskFilters } from './TaskFilters';
 import { TaskStats } from './TaskStats';
 import type { Task } from '../types/task';
