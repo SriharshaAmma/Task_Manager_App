@@ -25,6 +25,7 @@ export function useTasks() {
   const fetchTasks = async () => {
     try {
       setLoading(true);
+      if (!supabase) throw new Error('Supabase client is not initialized');
       const { data, error } = await supabase
         .from('tasks')
         .select('*')
@@ -40,9 +41,10 @@ export function useTasks() {
   };
 
   const addTask = async (taskInput: TaskInput) => {
-    if (!user) return { error: new Error('User not authenticated') };
-
     try {
+      if (!user) return { error: new Error('User not authenticated') };
+
+      if (!supabase) return { data: null, error: new Error('Supabase client is not initialized') };
       const { data, error } = await supabase
         .from('tasks')
         .insert([{ ...taskInput, user_id: user.id }])
@@ -60,6 +62,7 @@ export function useTasks() {
 
   const updateTask = async (id: string, updates: Partial<TaskInput>) => {
     try {
+      if (!supabase) return { data: null, error: new Error('Supabase client is not initialized') };
       const { data, error } = await supabase
         .from('tasks')
         .update(updates)
@@ -68,7 +71,7 @@ export function useTasks() {
         .single();
 
       if (error) throw error;
-      setTasks(prev => prev.map(task => task.id === id ? data : task));
+      setTasks((prev: Task[]) => prev.map((task: Task) => task.id === id ? data : task));
       return { data, error: null };
     } catch (error) {
       console.error('Error updating task:', error);
@@ -78,13 +81,14 @@ export function useTasks() {
 
   const deleteTask = async (id: string) => {
     try {
+      if (!supabase) return { error: new Error('Supabase client is not initialized') };
       const { error } = await supabase
         .from('tasks')
         .delete()
         .eq('id', id);
 
       if (error) throw error;
-      setTasks(prev => prev.filter(task => task.id !== id));
+      setTasks((prev: Task[]) => prev.filter((task: Task) => task.id !== id));
       return { error: null };
     } catch (error) {
       console.error('Error deleting task:', error);

@@ -1,9 +1,10 @@
+// src/types/task.ts
 export interface Task {
   id: string;
   user_id: string;
   title: string;
   description: string;
-  due_date: string | null;
+  due_date: string | null; // always null if empty
   priority: 'low' | 'medium' | 'high';
   category: string;
   status: 'pending' | 'completed';
@@ -11,18 +12,7 @@ export interface Task {
   updated_at: string;
 }
 
-export interface Task {
-  id: string;
-  title: string;
-  description: string;
-  due_date: string | null;
-  priority: "low" | "medium" | "high";
-  category: string;
-  status: "pending" | "completed";
-}
-
-export type TaskInput = Omit<Task, "id">;
-
+export type TaskInput = Omit<Task, 'id' | 'created_at' | 'updated_at'>;
 
 export interface TaskFilters {
   status: 'all' | 'pending' | 'completed';

@@ -5,91 +5,64 @@ import { Task, TaskInput } from '../types/task';
 interface TaskModalProps {
   task: Task | null;
   onClose: () => void;
-  onSave: (taskInput: TaskInput) => Promise<{ data: any; error: any }>;
-  onUpdate: (id: string, updates: Partial<TaskInput>) => Promise<{ data: any; error: any }>;
+  onSave: (taskData: TaskInput, id?: string) => Promise<any>;
 }
 
-export function TaskModal({ task, onClose, onSave, onUpdate }: TaskModalProps) {
+
+export function TaskModal({ task, onClose, onSave }: TaskModalProps) {
   const [formData, setFormData] = useState<TaskInput>({
+    user_id: '',
     title: '',
     description: '',
     due_date: null,
     priority: 'medium',
     category: 'general',
-    status: 'pending',
-    user_id: '',
-    created_at: '',
-    updated_at: ''
+    status: 'pending'
   });
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     if (task) {
-      setFormData({
+       setFormData({
+        user_id: task.user_id || '',
         title: task.title,
-        description: task.description || '',
+        description: task.description,
         due_date: task.due_date,
         priority: task.priority,
         category: task.category,
-        status: task.status,
-        user_id: task.user_id || '',
-        created_at: task.created_at || '',
-        updated_at: task.updated_at || ''
-      });
-    } else {
-      setFormData({
-        title: '',
-        description: '',
-        due_date: null,
-        priority: 'medium',
-        category: 'general',
-        status: 'pending',
-        user_id: '',
-        created_at: '',
-        updated_at: ''
+        status: task.status
       });
     }
-    setError(null);
   }, [task]);
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!formData.title.trim()) {
-      setError('Title is required');
-      return;
-    }
+ const handleSubmit = async (e: React.FormEvent) => {
+  e.preventDefault();
 
-    setLoading(true);
-    setError(null);
+  if (!formData.title.trim()) {
+    setError('Title is required');
+    return;
+  }
 
-    try {
-      let result;
-      if (task) {
-        // Editing existing task
-        result = await onUpdate(task.id, formData);
-      } else {
-        // Creating new task
-        result = await onSave(formData);
-      }
+  setLoading(true);
+  setError(null);
 
-      if (result.error) {
-        throw result.error;
-      }
-
-      onClose();
-    } catch (err: any) {
-      setError(err.message || 'An error occurred while saving the task');
-    } finally {
-      setLoading(false);
-    }
-  };
+  try {
+    // Pass task.id if editing, undefined if creating
+    await onSave(formData, task?.id);
+    onClose(); // Close modal after successful save
+  } catch (err: any) {
+    setError(err.message || 'An error occurred');
+  } finally {
+    setLoading(false);
+  }
+};
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
     setFormData(prev => ({
       ...prev,
-      [name]: value === '' ? (name === 'due_date' ? null : '') : value
+      [name]: value === '' ? null : value
     }));
   };
 
@@ -137,7 +110,7 @@ export function TaskModal({ task, onClose, onSave, onUpdate }: TaskModalProps) {
               id="description"
               name="description"
               rows={3}
-              value={formData.description || ''}
+              value={formData.description}
               onChange={handleInputChange}
               className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all resize-none"
               placeholder="Add a description..."
